@@ -27,6 +27,9 @@ export class App {
         this.controlPanel.setSkins(skins, defaultSkin);
         this.statusBar.setAnimation(defaultAnim);
         this.hideLoading();
+        console.log('[SpineViewer] Animations:', anims);
+        console.log('[SpineViewer] Skins:', skins);
+        console.log('[SpineViewer] Default animation:', defaultAnim, '| Default skin:', defaultSkin);
       },
       onTick: (current, duration, now) => {
         this.statusBar.setTime(current, duration);
@@ -43,9 +46,11 @@ export class App {
       onAnimationSelect: (name) => {
         this.display.playAnimation(name);
         this.statusBar.setAnimation(name);
+        console.log('[SpineViewer] Animation:', name);
       },
       onSkinSelect: (name) => {
         this.display.setSkin(name);
+        console.log('[SpineViewer] Skin:', name);
       },
       onPlayPause: (playing) => {
         this.display.setPlaying(playing);
@@ -88,11 +93,14 @@ export class App {
       const assets = await loadFromFiles(files);
       this.currentAssets = assets;
       this.statusBar.setFile(assets.fileName);
+      console.log('[SpineViewer] Loaded file:', assets.fileName);
       this.dropZone.hide();
       await this.display.load(assets);
     } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
       this.hideLoading();
-      this.showError(err instanceof Error ? err.message : String(err));
+      this.showError(msg);
+      console.error('[SpineViewer] Error:', msg);
     }
   }
 

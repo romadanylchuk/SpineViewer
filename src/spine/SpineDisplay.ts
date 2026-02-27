@@ -1,4 +1,4 @@
-import { Application, Assets, Texture as PixiTexture } from 'pixi.js';
+import { Application, ImageSource } from 'pixi.js';
 import {
   AtlasAttachmentLoader,
   SkeletonJson,
@@ -99,8 +99,9 @@ export class SpineDisplay {
         console.warn(`Texture page not found: ${page.name}`);
         continue;
       }
-      const pixiTex: PixiTexture = await Assets.load<PixiTexture>(url);
-      page.setTexture(SpineTexture.from(pixiTex.source));
+      const blob = await fetch(url).then(r => r.blob());
+      const bitmap = await createImageBitmap(blob);
+      page.setTexture(SpineTexture.from(new ImageSource({ resource: bitmap })));
     }
 
     // 3. Parse skeleton

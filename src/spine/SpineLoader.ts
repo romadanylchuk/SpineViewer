@@ -86,7 +86,7 @@ async function loadFromSpineArchive(file: File): Promise<LoadedSpineAssets> {
 
   const toBlob = async (entry: JSZip.JSZipObject, mime: string) => {
     const data = await entry.async('uint8array');
-    return new Blob([data.buffer as ArrayBuffer], { type: mime });
+    return new Blob([data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer], { type: mime });
   };
 
   const skelMime  = skelEntry ? 'application/octet-stream' : 'application/json';
