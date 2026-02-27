@@ -17,7 +17,7 @@
   --text-dim:   #7a82a0;
   --text-muted: #454d66;
   --danger:     #ff5e5e;
-  --sidebar-w:  260px;
+  --sidebar-w:  280px;
   --status-h:   28px;
   --font:       'Segoe UI', system-ui, sans-serif;
 }
@@ -416,15 +416,25 @@ input[type="color"] {
   color: var(--text-muted);
 }
 
-/* ── Animations list ───────────────────────────────────────────────── */
+/* ── Animations / Skins list ───────────────────────────────────────── */
 .anim-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  max-height: 200px;
+  gap: 1px;
+  max-height: 220px;
   overflow-y: auto;
+  overflow-x: hidden;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
+}
+
+.anim-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.anim-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
 }
 
 .anim-item {
@@ -434,10 +444,9 @@ input[type="color"] {
   font-size: 12px;
   color: var(--text-dim);
   border: 1px solid transparent;
-  transition: background 0.1s;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  transition: background 0.1s, color 0.1s;
+  word-break: break-all;
+  line-height: 1.35;
 }
 
 .anim-item:hover {
@@ -449,6 +458,27 @@ input[type="color"] {
   background: var(--bg-active);
   border-color: var(--accent-dim);
   color: var(--accent);
+  font-weight: 500;
+}
+
+.anim-item .item-index {
+  color: var(--text-muted);
+  font-size: 10px;
+  margin-right: 4px;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+.section-count {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-muted);
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 6px;
+  line-height: 16px;
 }
 
 /* ── Empty state ───────────────────────────────────────────────────── */

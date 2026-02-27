@@ -43,7 +43,7 @@ export class ControlPanel {
 
         <!-- Animations -->
         <div class="panel-section">
-          <div class="section-title">Animations</div>
+          <div class="section-title">Animations <span class="section-count" id="anim-count"></span></div>
           <div class="anim-list" id="anim-list">
             <span class="empty-msg">No skeleton loaded</span>
           </div>
@@ -51,7 +51,7 @@ export class ControlPanel {
 
         <!-- Skins -->
         <div class="panel-section">
-          <div class="section-title">Skins</div>
+          <div class="section-title">Skins <span class="section-count" id="skin-count"></span></div>
           <div class="anim-list" id="skin-list">
             <span class="empty-msg">No skeleton loaded</span>
           </div>
@@ -109,6 +109,7 @@ export class ControlPanel {
 
     this.animListEl  = document.getElementById('anim-list')!;
     this.skinListEl  = document.getElementById('skin-list')!;
+    // count badges grabbed inline when setting data
     this.playBtn     = document.getElementById('play-btn') as HTMLButtonElement;
     this.speedBadge  = document.getElementById('speed-badge')!;
     this.scaleBadge  = document.getElementById('scale-badge')!;
@@ -149,12 +150,15 @@ export class ControlPanel {
   }
 
   setAnimations(names: string[], current: string): void {
+    const countEl = document.getElementById('anim-count');
     if (names.length === 0) {
       this.animListEl.innerHTML = '<span class="empty-msg">No animations</span>';
+      if (countEl) countEl.textContent = '';
       return;
     }
+    if (countEl) countEl.textContent = String(names.length);
     this.animListEl.innerHTML = names
-      .map(n => `<div class="anim-item${n === current ? ' active' : ''}" data-name="${n}">${n}</div>`)
+      .map((n, i) => `<div class="anim-item${n === current ? ' active' : ''}" data-name="${n}" title="${n}"><span class="item-index">${i + 1}</span>${n}</div>`)
       .join('');
 
     this.animListEl.querySelectorAll('.anim-item').forEach(el => {
@@ -168,12 +172,15 @@ export class ControlPanel {
   }
 
   setSkins(names: string[], current: string): void {
+    const countEl = document.getElementById('skin-count');
     if (names.length === 0) {
       this.skinListEl.innerHTML = '<span class="empty-msg">No skins</span>';
+      if (countEl) countEl.textContent = '';
       return;
     }
+    if (countEl) countEl.textContent = String(names.length);
     this.skinListEl.innerHTML = names
-      .map(n => `<div class="anim-item${n === current ? ' active' : ''}" data-name="${n}">${n}</div>`)
+      .map((n, i) => `<div class="anim-item${n === current ? ' active' : ''}" data-name="${n}" title="${n}"><span class="item-index">${i + 1}</span>${n}</div>`)
       .join('');
 
     this.skinListEl.querySelectorAll('.anim-item').forEach(el => {
