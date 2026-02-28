@@ -170,10 +170,8 @@ export class SpineDisplay {
 
   setSkin(name: string): void {
     if (!this.spine) return;
-    const skeleton = this.spine.skeleton;
-    skeleton.setSkin(null);          // clear first — prevents old skin attachments leaking
-    skeleton.setSkinByName(name);
-    skeleton.setSlotsToSetupPose();
+    this.spine.skeleton.setSkinByName(name);
+    this.spine.skeleton.setToSetupPose();
   }
 
   setPlaying(playing: boolean): void {
