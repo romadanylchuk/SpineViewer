@@ -1,5 +1,3 @@
-declare const __PIXI_VERSION__: string;
-
 export class DropZone {
   private overlay: HTMLElement;
   private onFiles: (files: File[]) => void;
@@ -20,7 +18,8 @@ export class DropZone {
   }
 
   private render(): void {
-    const pixiVer = typeof __PIXI_VERSION__ !== 'undefined' ? __PIXI_VERSION__ : '8';
+    // Detect version from URL: v7 build is served under /v7/, v8 at root
+    const pixiVer = window.location.pathname.includes('/v7') ? '7' : '8';
     const other = pixiVer === '8' ? { label: '7', href: './v7/' } : { label: '8', href: '../' };
 
     this.overlay.innerHTML = `

@@ -1,5 +1,3 @@
-declare const __PIXI_VERSION__: string;
-
 export interface ControlPanelCallbacks {
   onAnimationSelect: (name: string, track: number) => void;
   onTrackStop: (track: number) => void;
@@ -39,7 +37,7 @@ export class ControlPanel {
   }
 
   private render(): void {
-    const pixiVer = typeof __PIXI_VERSION__ !== 'undefined' ? __PIXI_VERSION__ : '8';
+    const pixiVer = window.location.pathname.includes('/v7') ? '7' : '8';
     const other = pixiVer === '8'
       ? { label: '7', href: './v7/' }
       : { label: '8', href: '../' };
