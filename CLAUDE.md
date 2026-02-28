@@ -44,7 +44,7 @@ The app is a single-page Spine animation viewer. Entry point is `src/main.ts` �
 
 **Multi-track animations:** Spine supports layered animation tracks (0–9). The track number input in `ControlPanel` selects which track an animation plays on. Active tracks are shown as chips with per-track stop buttons. `SpineDisplay` maintains `activeTracks: Map<number, string>`.
 
-**Skin switching:** Uses `skeleton.setSkin(null)` first to clear, then `setSkinByName()` + `setSlotsToSetupPose()` — the null-clear is required to prevent old skin attachments leaking into the new one.
+**Skin switching:** Many skeletons layer variant skins on top of `"default"` — variant slots don't overlap default slots, so switching to a bare variant leaves most slots empty. The correct approach is to combine: `new Skin('combined')` → `combined.addSkin(defaultSkin)` → `combined.addSkin(targetSkin)` → `skeleton.setSkin(combined)`. Also: clear with `setSkin(null)` before applying, and call `setToSetupPose()` (not just `setSlotsToSetupPose()`) to reset skin-controlled bone transforms.
 
 **Canvas interaction:** Pan (drag), zoom (wheel, capped 0.05–10×), double-click to fit. `fitToScreen()` scales to 80% of viewport and centers based on `spine.getBounds()`.
 
