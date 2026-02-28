@@ -51,6 +51,7 @@ export class ControlPanel {
             <label class="track-label">
               Track
               <input type="number" id="track-input" class="track-number-input" min="0" max="9" value="0" />
+              <button id="stop-track-btn" class="stop-track-btn" title="Stop current track">■</button>
             </label>
           </div>
           <div class="anim-list" id="anim-list">
@@ -157,6 +158,11 @@ export class ControlPanel {
         this.cb.onBgColor((e.target as HTMLInputElement).value);
       });
 
+    document.getElementById('stop-track-btn')!.addEventListener('click', () => {
+      const track = Math.max(0, Math.min(9, parseInt(this.trackInput.value) || 0));
+      this.cb.onTrackStop(track);
+    });
+
     document.getElementById('reset-btn')!.addEventListener('click', () => this.cb.onReset());
     document.getElementById('load-new-btn')!.addEventListener('click', () => this.cb.onLoadNew());
   }
@@ -242,11 +248,20 @@ export class ControlPanel {
       .sort(([a], [b]) => a - b)
       .map(([track, name]) => `
         <div class="track-chip">
-          <span class="track-num">T${track}</span>
-          <span class="track-anim" title="${name}">${name}</span>
+          <span class="track-chip-select" data-track="${track}" title="Switch to track ${track}">
+            <span class="track-num">T${track}</span>
+            <span class="track-anim" title="${name}">${name}</span>
+          </span>
           <button class="track-stop" data-track="${track}">×</button>
         </div>`)
       .join('');
+
+    this.activeTracksEl.querySelectorAll('.track-chip-select').forEach(el => {
+      el.addEventListener('click', () => {
+        const track = parseInt((el as HTMLElement).dataset.track!);
+        this.trackInput.value = String(track);
+      });
+    });
 
     this.activeTracksEl.querySelectorAll('.track-stop').forEach(btn => {
       btn.addEventListener('click', (e) => {
