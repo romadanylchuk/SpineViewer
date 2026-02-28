@@ -1,0 +1,20 @@
+{
+  "name": "spine-viewer-v7",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite --config vite.config.ts",
+    "build": "vite build --config vite.config.ts",
+    "preview": "vite preview --config vite.config.ts"
+  },
+  "dependencies": {
+    "@esotericsoftware/spine-pixi-v7": "~4.2.0",
+    "jszip": "^3.10.1",
+    "pixi.js": "^7.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "vite": "^5.0.0"
+  }
+}

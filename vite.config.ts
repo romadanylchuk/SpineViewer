@@ -7,6 +7,9 @@ export default defineConfig({
   build: {
     target: 'es2020',
   },
+  define: {
+    __PIXI_VERSION__: '"8"',
+  },
   optimizeDeps: {
     include: ['pixi.js', '@esotericsoftware/spine-pixi-v8', 'jszip'],
   },

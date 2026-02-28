@@ -1,3 +1,5 @@
+declare const __PIXI_VERSION__: string;
+
 export interface ControlPanelCallbacks {
   onAnimationSelect: (name: string, track: number) => void;
   onTrackStop: (track: number) => void;
@@ -37,9 +39,15 @@ export class ControlPanel {
   }
 
   private render(): void {
+    const pixiVer = typeof __PIXI_VERSION__ !== 'undefined' ? __PIXI_VERSION__ : '8';
+    const other = pixiVer === '8'
+      ? { label: '7', href: './v7/' }
+      : { label: '8', href: '../' };
+
     this.container.innerHTML = `
       <div class="panel-header">
         <span class="app-title">Spine Viewer</span>
+        <a class="version-badge" href="${other.href}" title="Switch to PixiJS ${other.label}">PixiJS ${pixiVer} <span class="version-switch">→ v${other.label}</span></a>
       </div>
 
       <div class="panel-sections">
