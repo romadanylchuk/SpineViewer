@@ -1,4 +1,4 @@
-import { Application, ImageSource } from 'pixi.js';
+import { Application, Assets, Container, type Texture } from 'pixi.js';
 import {
   AtlasAttachmentLoader,
   SkeletonJson,
@@ -8,7 +8,6 @@ import {
   SpineTexture,
   type SkeletonData,
 } from '@esotericsoftware/spine-pixi-v8';
-import { Container } from 'pixi.js';
 import type { LoadedSpineAssets } from './SpineLoader';
 
 export interface SpineDisplayCallbacks {
@@ -37,6 +36,7 @@ export class SpineDisplay {
   private _scale   = 1.0;
   private _speed   = 1.0;
   private _playing = true;
+  private _loadedTextureUrls: string[] = [];
 
   private currentAnim     = '';
   private currentDuration = 0;
@@ -86,24 +86,36 @@ export class SpineDisplay {
       this.spine = null;
     }
 
+    // Evict previously cached textures from the PixiJS Assets cache
+    if (this._loadedTextureUrls.length) {
+      await Promise.all(this._loadedTextureUrls.map(u => Assets.unload(u)));
+      this._loadedTextureUrls = [];
+    }
+
     // 1. Parse the atlas text
     const atlasText = await fetch(assets.atlasUrl).then(r => r.text());
     const atlas = new TextureAtlas(atlasText);
 
-    // 2. Load each texture page from object URLs
-    for (const page of atlas.pages) {
+    // 2. Load all texture pages via PixiJS Assets in parallel.
+    //    blob: URLs have no file extension so we bypass test() by naming the parser explicitly.
+    //    Passing alphaMode from page.pma lets PixiJS handle premultiplied-alpha correctly.
+    await Promise.all(atlas.pages.map(async page => {
       const url =
         assets.textureUrls.get(page.name) ??
         assets.textureUrls.get(page.name.split('/').pop()!) ??
         '';
       if (!url) {
         console.warn(`Texture page not found: ${page.name}`);
-        continue;
+        return;
       }
-      const blob = await fetch(url).then(r => r.blob());
-      const bitmap = await createImageBitmap(blob);
-      page.setTexture(SpineTexture.from(new ImageSource({ resource: bitmap })));
-    }
+      const tex = await Assets.load<Texture>({
+        src: url,
+        loadParser: 'loadTextures',
+        data: { alphaMode: page.pma ? 'premultiplied-alpha' : 'premultiply-alpha-on-upload' },
+      });
+      page.setTexture(SpineTexture.from(tex.source));
+      this._loadedTextureUrls.push(url);
+    }));
 
     // 3. Parse skeleton
     const attachmentLoader = new AtlasAttachmentLoader(atlas);
