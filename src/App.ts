@@ -11,6 +11,7 @@ export class App {
   private display!: SpineDisplay;
 
   private currentAssets: LoadedSpineAssets | null = null;
+  private currentLoop = true;
   private loadingOverlay!: HTMLElement;
   private errorToast!: HTMLElement;
   private errorTimer = 0;
@@ -25,6 +26,7 @@ export class App {
       onAnimationsReady: (anims, skins, defaultAnim, defaultSkin) => {
         this.controlPanel.setAnimations(anims, defaultAnim);
         this.controlPanel.setSkins(skins, defaultSkin);
+        this.controlPanel.updateActiveTracks(new Map());
         this.statusBar.setAnimation(defaultAnim);
         this.hideLoading();
         console.log('[SpineViewer] Animations:', anims);
@@ -43,10 +45,16 @@ export class App {
     await this.display.init();
 
     this.controlPanel = new ControlPanel({
-      onAnimationSelect: (name) => {
-        this.display.playAnimation(name);
+      onAnimationSelect: (name, track) => {
+        this.display.playAnimation(name, this.currentLoop, track);
         this.statusBar.setAnimation(name);
-        console.log('[SpineViewer] Animation:', name);
+        this.controlPanel.updateActiveTracks(this.display.getActiveTracks());
+        console.log(`[SpineViewer] Animation: ${name} on track ${track}`);
+      },
+      onTrackStop: (track) => {
+        this.display.stopTrack(track);
+        this.controlPanel.updateActiveTracks(this.display.getActiveTracks());
+        console.log(`[SpineViewer] Stopped track ${track}`);
       },
       onSkinSelect: (name) => {
         this.display.setSkin(name);
@@ -56,6 +64,7 @@ export class App {
         this.display.setPlaying(playing);
       },
       onLoop: (loop) => {
+        this.currentLoop = loop;
         this.display.setLoop(loop);
       },
       onSpeed: (speed) => {

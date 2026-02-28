@@ -438,6 +438,8 @@ input[type="color"] {
 }
 
 .anim-item {
+  display: flex;
+  align-items: center;
   padding: 5px 8px;
   border-radius: 4px;
   cursor: pointer;
@@ -445,8 +447,14 @@ input[type="color"] {
   color: var(--text-dim);
   border: 1px solid transparent;
   transition: background 0.1s, color 0.1s;
-  word-break: break-all;
   line-height: 1.35;
+}
+
+.anim-item .item-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .anim-item:hover {
@@ -467,6 +475,18 @@ input[type="color"] {
   margin-right: 4px;
   font-variant-numeric: tabular-nums;
   user-select: none;
+  flex-shrink: 0;
+}
+
+.anim-item .track-badge {
+  flex-shrink: 0;
+  font-size: 9px;
+  padding: 1px 5px;
+  background: var(--accent-dim);
+  border-radius: 3px;
+  color: #fff;
+  margin-left: 5px;
+  font-variant-numeric: tabular-nums;
 }
 
 .section-count {
@@ -479,6 +499,95 @@ input[type="color"] {
   border-radius: 10px;
   padding: 0 6px;
   line-height: 16px;
+}
+
+/* ── Track selector ────────────────────────────────────────────────── */
+.track-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.track-number-input {
+  width: 32px;
+  padding: 2px 4px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--accent);
+  font-size: 11px;
+  font-family: var(--font);
+  text-align: center;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.track-number-input::-webkit-inner-spin-button,
+.track-number-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.track-number-input:focus {
+  border-color: var(--accent-dim);
+}
+
+/* ── Active tracks ──────────────────────────────────────────────────── */
+.active-tracks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.track-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-deep);
+  border: 1px solid var(--accent-dim);
+  border-radius: 4px;
+  padding: 2px 5px 2px 6px;
+  font-size: 11px;
+  max-width: 100%;
+}
+
+.track-num {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.track-anim {
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+}
+
+.track-stop {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+  transition: color 0.1s;
+}
+
+.track-stop:hover {
+  color: var(--danger);
 }
 
 /* ── Empty state ───────────────────────────────────────────────────── */

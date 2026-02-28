@@ -40,6 +40,7 @@ export class SpineDisplay {
 
   private currentAnim     = '';
   private currentDuration = 0;
+  private activeTracks    = new Map<number, string>();
 
   constructor(cb: SpineDisplayCallbacks) {
     this.cb = cb;
@@ -122,33 +123,46 @@ export class SpineDisplay {
     this.spine = new Spine(skeletonData);
     this.spineContainer.addChild(this.spine);
 
-    // 5. Defaults
+    // 5. Populate UI — no auto skin/animation selection
+    this.activeTracks.clear();
     const animations = skeletonData.animations.map(a => a.name);
     const skins      = skeletonData.skins.map(s => s.name);
-    const defaultAnim = animations[0] ?? '';
-    const defaultSkin = skins.find(s => s !== 'default') ?? skins[0] ?? '';
-
-    if (defaultSkin) this.spine.skeleton.setSkinByName(defaultSkin);
-    if (defaultAnim) this.playAnimation(defaultAnim);
 
     this.fitToScreen();
 
-    this.cb.onAnimationsReady(animations, skins, defaultAnim, defaultSkin);
+    this.cb.onAnimationsReady(animations, skins, '', '');
   }
 
-  playAnimation(name: string, loop = true): void {
+  playAnimation(name: string, loop = true, track = 0): void {
     if (!this.spine) return;
     this.currentAnim = name;
     const anim = this.spine.skeleton.data.findAnimation(name);
-    this.currentDuration = anim ? anim.duration : 0;
-    this.spine.state.setAnimation(0, name, loop);
+    if (track === 0) this.currentDuration = anim ? anim.duration : 0;
+    this.spine.state.setAnimation(track, name, loop);
     this.spine.state.timeScale = this._playing ? this._speed : 0;
+    this.activeTracks.set(track, name);
+  }
+
+  stopTrack(track: number): void {
+    if (!this.spine) return;
+    this.spine.state.clearTrack(track);
+    this.activeTracks.delete(track);
+    if (track === 0) {
+      this.currentAnim     = '';
+      this.currentDuration = 0;
+    }
+  }
+
+  getActiveTracks(): Map<number, string> {
+    return new Map(this.activeTracks);
   }
 
   setSkin(name: string): void {
     if (!this.spine) return;
-    this.spine.skeleton.setSkinByName(name);
-    this.spine.skeleton.setToSetupPose();
+    const skeleton = this.spine.skeleton;
+    skeleton.setSkin(null);          // clear first — prevents attachAll() from copying old skin attachments into the new one
+    skeleton.setSkinByName(name);
+    skeleton.setSlotsToSetupPose();
   }
 
   setPlaying(playing: boolean): void {

@@ -1,5 +1,6 @@
 export interface ControlPanelCallbacks {
-  onAnimationSelect: (name: string) => void;
+  onAnimationSelect: (name: string, track: number) => void;
+  onTrackStop: (track: number) => void;
   onSkinSelect: (name: string) => void;
   onPlayPause: (playing: boolean) => void;
   onLoop: (loop: boolean) => void;
@@ -21,6 +22,8 @@ export class ControlPanel {
 
   private animListEl!: HTMLElement;
   private skinListEl!: HTMLElement;
+  private activeTracksEl!: HTMLElement;
+  private trackInput!: HTMLInputElement;
   private playBtn!: HTMLButtonElement;
   private speedBadge!: HTMLElement;
   private scaleBadge!: HTMLElement;
@@ -43,10 +46,17 @@ export class ControlPanel {
 
         <!-- Animations -->
         <div class="panel-section">
-          <div class="section-title">Animations <span class="section-count" id="anim-count"></span></div>
+          <div class="section-title" style="display:flex;align-items:center">
+            <span>Animations <span class="section-count" id="anim-count"></span></span>
+            <label class="track-label">
+              Track
+              <input type="number" id="track-input" class="track-number-input" min="0" max="9" value="0" />
+            </label>
+          </div>
           <div class="anim-list" id="anim-list">
             <span class="empty-msg">No skeleton loaded</span>
           </div>
+          <div id="active-tracks" class="active-tracks"></div>
         </div>
 
         <!-- Skins -->
@@ -107,8 +117,10 @@ export class ControlPanel {
       </div>
     `;
 
-    this.animListEl  = document.getElementById('anim-list')!;
-    this.skinListEl  = document.getElementById('skin-list')!;
+    this.animListEl    = document.getElementById('anim-list')!;
+    this.skinListEl    = document.getElementById('skin-list')!;
+    this.activeTracksEl = document.getElementById('active-tracks')!;
+    this.trackInput    = document.getElementById('track-input') as HTMLInputElement;
     // count badges grabbed inline when setting data
     this.playBtn     = document.getElementById('play-btn') as HTMLButtonElement;
     this.speedBadge  = document.getElementById('speed-badge')!;
@@ -149,7 +161,7 @@ export class ControlPanel {
     document.getElementById('load-new-btn')!.addEventListener('click', () => this.cb.onLoadNew());
   }
 
-  setAnimations(names: string[], current: string): void {
+  setAnimations(names: string[], _current: string): void {
     const countEl = document.getElementById('anim-count');
     if (names.length === 0) {
       this.animListEl.innerHTML = '<span class="empty-msg">No animations</span>';
@@ -158,15 +170,14 @@ export class ControlPanel {
     }
     if (countEl) countEl.textContent = String(names.length);
     this.animListEl.innerHTML = names
-      .map((n, i) => `<div class="anim-item${n === current ? ' active' : ''}" data-name="${n}" title="${n}"><span class="item-index">${i + 1}</span>${n}</div>`)
+      .map((n, i) => `<div class="anim-item" data-name="${n}" title="${n}"><span class="item-index">${i + 1}</span><span class="item-name">${n}</span></div>`)
       .join('');
 
     this.animListEl.querySelectorAll('.anim-item').forEach(el => {
       el.addEventListener('click', () => {
-        const name = (el as HTMLElement).dataset.name!;
-        this.animListEl.querySelectorAll('.anim-item').forEach(e => e.classList.remove('active'));
-        el.classList.add('active');
-        this.cb.onAnimationSelect(name);
+        const name  = (el as HTMLElement).dataset.name!;
+        const track = Math.max(0, Math.min(9, parseInt(this.trackInput.value) || 0));
+        this.cb.onAnimationSelect(name, track);
       });
     });
   }
@@ -180,7 +191,7 @@ export class ControlPanel {
     }
     if (countEl) countEl.textContent = String(names.length);
     this.skinListEl.innerHTML = names
-      .map((n, i) => `<div class="anim-item${n === current ? ' active' : ''}" data-name="${n}" title="${n}"><span class="item-index">${i + 1}</span>${n}</div>`)
+      .map((n, i) => `<div class="anim-item${n === current ? ' active' : ''}" data-name="${n}" title="${n}"><span class="item-index">${i + 1}</span><span class="item-name">${n}</span></div>`)
       .join('');
 
     this.skinListEl.querySelectorAll('.anim-item').forEach(el => {
@@ -196,6 +207,53 @@ export class ControlPanel {
   setActiveAnimation(name: string): void {
     this.animListEl.querySelectorAll('.anim-item').forEach(el => {
       el.classList.toggle('active', (el as HTMLElement).dataset.name === name);
+    });
+  }
+
+  updateActiveTracks(tracks: Map<number, string>): void {
+    // Sync active state + track badge on each animation item
+    this.animListEl.querySelectorAll('.anim-item').forEach(el => {
+      const animName = (el as HTMLElement).dataset.name!;
+      const myTracks = [...tracks.entries()]
+        .filter(([, n]) => n === animName)
+        .map(([t]) => t);
+
+      el.classList.toggle('active', myTracks.length > 0);
+
+      let badge = el.querySelector('.track-badge') as HTMLElement | null;
+      if (myTracks.length > 0) {
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'track-badge';
+          el.appendChild(badge);
+        }
+        badge.textContent = myTracks.map(t => `T${t}`).join(' ');
+      } else {
+        badge?.remove();
+      }
+    });
+
+    // Rebuild active-tracks chips
+    if (tracks.size === 0) {
+      this.activeTracksEl.innerHTML = '';
+      return;
+    }
+    this.activeTracksEl.innerHTML = [...tracks.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([track, name]) => `
+        <div class="track-chip">
+          <span class="track-num">T${track}</span>
+          <span class="track-anim" title="${name}">${name}</span>
+          <button class="track-stop" data-track="${track}">×</button>
+        </div>`)
+      .join('');
+
+    this.activeTracksEl.querySelectorAll('.track-stop').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const track = parseInt((btn as HTMLElement).dataset.track!);
+        this.cb.onTrackStop(track);
+      });
     });
   }
 
