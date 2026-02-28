@@ -1,3 +1,5 @@
+declare const __PIXI_VERSION__: string;
+
 export class DropZone {
   private overlay: HTMLElement;
   private onFiles: (files: File[]) => void;
@@ -18,6 +20,9 @@ export class DropZone {
   }
 
   private render(): void {
+    const pixiVer = typeof __PIXI_VERSION__ !== 'undefined' ? __PIXI_VERSION__ : '8';
+    const other = pixiVer === '8' ? { label: '7', href: './v7/' } : { label: '8', href: '../' };
+
     this.overlay.innerHTML = `
       <div class="drop-box" id="drop-box">
         <div class="drop-icon">🦴</div>
@@ -34,6 +39,11 @@ export class DropZone {
         </div>
         <div class="drop-or">— or —</div>
         <button class="btn primary" id="browse-btn">Browse files</button>
+      </div>
+      <div class="version-switcher">
+        <span class="version-switcher-label">PixiJS</span>
+        <span class="version-pill active">v${pixiVer}</span>
+        <a class="version-pill" href="${other.href}">v${other.label}</a>
       </div>
     `;
 
