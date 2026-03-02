@@ -32,6 +32,7 @@ export class SpineDisplay {
   private isDragging  = false;
   private dragStart   = { x: 0, y: 0 };
   private origin      = { x: 0, y: 0 };
+  private positionFrac = { x: 0.5, y: 0.5 };
 
   private _scale   = 1.0;
   private _speed   = 1.0;
@@ -143,7 +144,9 @@ export class SpineDisplay {
 
     if (defaultAnim) this.playAnimation(defaultAnim, true, 0);
 
-    this.fitToScreen();
+    // Defer fitToScreen until after the first ticker frame so getBounds()
+    // reflects the actual computed pose rather than an uninitialized skeleton.
+    this.app.ticker.addOnce(() => this.fitToScreen());
 
     this.cb.onAnimationsReady(animations, skins, defaultAnim, defaultSkin);
   }
@@ -224,6 +227,7 @@ export class SpineDisplay {
     const cx = width  / 2 - (bounds.x + bounds.width  / 2) * scale;
     const cy = height / 2 - (bounds.y + bounds.height / 2) * scale;
     this.spineContainer.position.set(cx, cy);
+    this.positionFrac = { x: cx / width, y: cy / height };
   }
 
   // ── Interaction ──────────────────────────────────────────────────────
@@ -243,6 +247,8 @@ export class SpineDisplay {
       if (!this.isDragging) return;
       this.spineContainer.x = this.origin.x + (e.clientX - this.dragStart.x);
       this.spineContainer.y = this.origin.y + (e.clientY - this.dragStart.y);
+      const { width, height } = this.app.screen;
+      this.positionFrac = { x: this.spineContainer.x / width, y: this.spineContainer.y / height };
     });
 
     window.addEventListener('mouseup', () => { this.isDragging = false; });
@@ -261,7 +267,12 @@ export class SpineDisplay {
     });
 
     const ro = new ResizeObserver(() => {
-      if (this.spine) this.fitToScreen();
+      if (!this.spine) return;
+      const { width, height } = this.app.screen;
+      this.spineContainer.position.set(
+        this.positionFrac.x * width,
+        this.positionFrac.y * height,
+      );
     });
     ro.observe(this.container);
   }
