@@ -3,6 +3,7 @@ import path from 'path';
 
 export default defineConfig({
   root: '.',
+  base: '/SpineViewer/',
   resolve: {
     alias: [
       // Redirect any import of */spine/SpineDisplay to the v7 override
