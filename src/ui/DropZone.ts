@@ -1,3 +1,5 @@
+declare const __APP_VERSION__: string;
+
 export class DropZone {
   private overlay: HTMLElement;
   private onFiles: (files: File[]) => void;
@@ -23,6 +25,10 @@ export class DropZone {
     const other = pixiVer === '8' ? { label: '7', href: './v7/' } : { label: '8', href: '../' };
 
     this.overlay.innerHTML = `
+      <div class="drop-app-header">
+        <span class="drop-app-name">Spine Viewer</span>
+        <span class="drop-app-ver">v${__APP_VERSION__}</span>
+      </div>
       <div class="drop-box" id="drop-box">
         <div class="drop-icon">🦴</div>
         <div class="drop-title">Drop Spine files here</div>

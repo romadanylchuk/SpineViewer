@@ -449,6 +449,27 @@ input[type="color"] {
   color: var(--text-muted);
 }
 
+/* ── Drop zone app header ──────────────────────────────────────────── */
+.drop-app-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.drop-app-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+}
+
+.drop-app-ver {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
 /* ── Version switcher (drop zone) ──────────────────────────────────── */
 .version-switcher {
   display: flex;
