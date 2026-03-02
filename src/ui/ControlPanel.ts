@@ -182,7 +182,7 @@ export class ControlPanel {
     }
     if (countEl) countEl.textContent = String(names.length);
     this.animListEl.innerHTML = names
-      .map((n, i) => `<div class="anim-item" data-name="${n}" title="${n}"><span class="item-index">${i + 1}</span><span class="item-name">${n}</span></div>`)
+      .map((n, i) => `<div class="anim-item" data-name="${n}" title="${n}"><span class="item-index">${i + 1}</span><span class="item-name">${n}</span><button class="copy-btn" data-name="${n}" title="Copy name"><span class="copy-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="1"/><path d="M3 11V3a1 1 0 0 1 1-1h8"/></svg></span><span class="copied-icon">✓</span></button></div>`)
       .join('');
 
     this.animListEl.querySelectorAll('.anim-item').forEach(el => {
@@ -192,6 +192,7 @@ export class ControlPanel {
         this.cb.onAnimationSelect(name, track);
       });
     });
+    this.attachCopyHandlers(this.animListEl);
   }
 
   setSkins(names: string[], current: string): void {
@@ -203,7 +204,7 @@ export class ControlPanel {
     }
     if (countEl) countEl.textContent = String(names.length);
     this.skinListEl.innerHTML = names
-      .map((n, i) => `<div class="anim-item${n === current ? ' active' : ''}" data-name="${n}" title="${n}"><span class="item-index">${i + 1}</span><span class="item-name">${n}</span></div>`)
+      .map((n, i) => `<div class="anim-item${n === current ? ' active' : ''}" data-name="${n}" title="${n}"><span class="item-index">${i + 1}</span><span class="item-name">${n}</span><button class="copy-btn" data-name="${n}" title="Copy name"><span class="copy-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="1"/><path d="M3 11V3a1 1 0 0 1 1-1h8"/></svg></span><span class="copied-icon">✓</span></button></div>`)
       .join('');
 
     this.skinListEl.querySelectorAll('.anim-item').forEach(el => {
@@ -212,6 +213,20 @@ export class ControlPanel {
         this.skinListEl.querySelectorAll('.anim-item').forEach(e => e.classList.remove('active'));
         el.classList.add('active');
         this.cb.onSkinSelect(name);
+      });
+    });
+    this.attachCopyHandlers(this.skinListEl);
+  }
+
+  private attachCopyHandlers(containerEl: HTMLElement): void {
+    containerEl.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const name = (btn as HTMLElement).dataset.name!;
+        navigator.clipboard.writeText(name).then(() => {
+          btn.classList.add('copied');
+          setTimeout(() => btn.classList.remove('copied'), 1200);
+        });
       });
     });
   }

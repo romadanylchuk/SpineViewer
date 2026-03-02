@@ -551,6 +551,50 @@ a.version-pill:hover {
   font-variant-numeric: tabular-nums;
 }
 
+.copy-btn {
+  flex-shrink: 0;
+  opacity: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 3px;
+  margin-left: 3px;
+  color: var(--text-muted);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  transition: opacity 0.1s, color 0.1s, background 0.1s;
+}
+
+.anim-item:hover .copy-btn {
+  opacity: 1;
+}
+
+.copy-btn:hover {
+  color: var(--accent);
+  background: var(--bg-deep);
+}
+
+.copy-btn .copied-icon {
+  display: none;
+  font-size: 11px;
+  color: #4caf50;
+}
+
+.copy-btn.copied {
+  opacity: 1;
+  color: #4caf50;
+}
+
+.copy-btn.copied .copy-icon {
+  display: none;
+}
+
+.copy-btn.copied .copied-icon {
+  display: inline;
+}
+
 .section-count {
   margin-left: auto;
   font-size: 10px;
