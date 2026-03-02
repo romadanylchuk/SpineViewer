@@ -57,8 +57,8 @@ export class ControlPanel {
             <span>Animations <span class="section-count" id="anim-count"></span></span>
             <label class="track-label">
               Track
-              <input type="number" id="track-input" class="track-number-input" min="0" max="9" value="0" />
-              <button id="stop-track-btn" class="stop-track-btn" title="Stop current track">■</button>
+              <input type="number" id="track-input" class="track-number-input" min="0" max="9" value="0" title="Animation track (0–9) — multiple animations can play simultaneously on different tracks" />
+              <button id="stop-track-btn" class="stop-track-btn" title="Stop the selected track">■</button>
             </label>
           </div>
           <div class="anim-list" id="anim-list">
@@ -79,11 +79,11 @@ export class ControlPanel {
         <div class="panel-section">
           <div class="section-title">Playback</div>
           <div class="btn-row" style="margin-bottom:10px">
-            <button class="btn primary" id="play-btn" style="flex:1">⏸ Pause</button>
+            <button class="btn primary" id="play-btn" style="flex:1" title="Play / pause the animation">⏸ Pause</button>
           </div>
           <div class="toggle-row">
             <span class="toggle-label">Loop</span>
-            <label class="toggle">
+            <label class="toggle" title="Loop the animation continuously">
               <input type="checkbox" id="loop-toggle" checked />
               <span class="toggle-slider"></span>
             </label>
@@ -93,7 +93,7 @@ export class ControlPanel {
               Speed
               <span class="value-badge" id="speed-badge">1.0×</span>
             </div>
-            <input type="range" id="speed-slider" min="0.1" max="3" step="0.05" value="1" />
+            <input type="range" id="speed-slider" min="0.1" max="3" step="0.05" value="1" title="Playback speed (0.1× – 3×)" />
           </div>
         </div>
 
@@ -105,14 +105,14 @@ export class ControlPanel {
               Scale
               <span class="value-badge" id="scale-badge">1.0×</span>
             </div>
-            <input type="range" id="scale-slider" min="0.05" max="5" step="0.05" value="1" />
+            <input type="range" id="scale-slider" min="0.05" max="5" step="0.05" value="1" title="Skeleton scale (0.05× – 5×)" />
           </div>
           <div class="field">
             <div class="field-label">Background</div>
-            <input type="color" id="bg-color" value="#1a1a2e" />
+            <input type="color" id="bg-color" value="#1a1a2e" title="Background color" />
           </div>
           <div class="btn-row" style="margin-top:4px">
-            <button class="btn" id="reset-btn" style="flex:1">↺ Reset view</button>
+            <button class="btn" id="reset-btn" style="flex:1" title="Fit skeleton to screen and reset pan">↺ Reset view</button>
             <button class="btn" id="debug-bounds-btn" title="Toggle bounding box">⬜ Bounds</button>
           </div>
         </div>
@@ -120,7 +120,7 @@ export class ControlPanel {
         <!-- File -->
         <div class="panel-section">
           <div class="section-title">File</div>
-          <button class="btn" id="load-new-btn" style="width:100%">📂 Load new file</button>
+          <button class="btn" id="load-new-btn" style="width:100%" title="Load a .json, .skel, .atlas or .spine zip">📂 Load new file</button>
         </div>
 
       </div>
@@ -281,7 +281,7 @@ export class ControlPanel {
             <span class="track-num">T${track}</span>
             <span class="track-anim" title="${name}">${name}</span>
           </span>
-          <button class="track-stop" data-track="${track}">×</button>
+          <button class="track-stop" data-track="${track}" title="Stop track ${track}">×</button>
         </div>`)
       .join('');
 
