@@ -135,14 +135,18 @@ export class SpineDisplay {
     this.spine = new Spine(skeletonData);
     this.spineContainer.addChild(this.spine);
 
-    // 5. Populate UI — no auto skin/animation selection
+    // 5. Populate UI and auto-start first animation
     this.activeTracks.clear();
     const animations = skeletonData.animations.map(a => a.name);
     const skins      = skeletonData.skins.map(s => s.name);
+    const defaultAnim = animations[0] ?? '';
+    const defaultSkin = skins[0] ?? '';
+
+    if (defaultAnim) this.playAnimation(defaultAnim, true, 0);
 
     this.fitToScreen();
 
-    this.cb.onAnimationsReady(animations, skins, '', '');
+    this.cb.onAnimationsReady(animations, skins, defaultAnim, defaultSkin);
   }
 
   playAnimation(name: string, loop = true, track = 0): void {

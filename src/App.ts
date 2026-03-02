@@ -26,7 +26,7 @@ export class App {
       onAnimationsReady: (anims, skins, defaultAnim, defaultSkin) => {
         this.controlPanel.setAnimations(anims, defaultAnim);
         this.controlPanel.setSkins(skins, defaultSkin);
-        this.controlPanel.updateActiveTracks(new Map());
+        this.controlPanel.updateActiveTracks(this.display.getActiveTracks());
         this.statusBar.setAnimation(defaultAnim);
         this.hideLoading();
         console.log('[SpineViewer] Animations:', anims);
