@@ -135,6 +135,15 @@ html, body, #app {
   letter-spacing: 0;
 }
 
+.app-version {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  opacity: 0.6;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 .version-badge {
   margin-left: auto;
   font-size: 10px;

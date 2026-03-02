@@ -1,3 +1,5 @@
+declare const __APP_VERSION__: string;
+
 export interface ControlPanelCallbacks {
   onAnimationSelect: (name: string, track: number) => void;
   onTrackStop: (track: number) => void;
@@ -45,7 +47,7 @@ export class ControlPanel {
 
     this.container.innerHTML = `
       <div class="panel-header">
-        <span class="app-title">Spine Viewer</span>
+        <span class="app-title">Spine Viewer</span><span class="app-version">v${__APP_VERSION__}</span>
         <a class="version-badge" href="${other.href}" title="Switch to PixiJS ${other.label}">PixiJS ${pixiVer} <span class="version-switch">→ v${other.label}</span></a>
       </div>
 

@@ -10,7 +10,7 @@
     "build:all": "npm run build:v8 && npm run build:v7",
     "dev:v7": "vite serve v7 --config v7/vite.config.ts",
     "preview": "vite preview",
-    "deploy": "npm run build:all && gh-pages -d dist"
+    "deploy": "npm version minor && npm run build:all && gh-pages -d dist && git push --follow-tags"
   },
   "dependencies": {
     "@esotericsoftware/spine-pixi-v8": "~4.2.0",
