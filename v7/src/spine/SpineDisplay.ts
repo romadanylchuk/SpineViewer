@@ -214,18 +214,30 @@ export class SpineDisplay {
 
   private fitToScreen(): void {
     if (!this.spine) return;
-    const bounds = this.spine.getBounds();
+    // Use getLocalBounds() so the result is independent of spineContainer's
+    // current world position — otherwise 2nd+ loads mis-center the skeleton.
+    const bounds = this.spine.getLocalBounds();
     const { width, height } = this.app.screen;
 
-    const scaleX = (width  * 0.8) / (bounds.width  || 1);
-    const scaleY = (height * 0.8) / (bounds.height || 1);
+    const bw = bounds.width;
+    const bh = bounds.height;
+
+    // Guard: Spine may not have computed valid bounds yet (before first update).
+    // getBounds returning Infinity/-Infinity would produce NaN → PixiJS snaps to (0,0).
+    if (!isFinite(bw) || !isFinite(bh) || bw <= 0 || bh <= 0) {
+      this.app.ticker.addOnce(() => this.fitToScreen());
+      return;
+    }
+
+    const scaleX = (width  * 0.8) / bw;
+    const scaleY = (height * 0.8) / bh;
     const scale  = Math.min(scaleX, scaleY, 2);
 
     this._scale = scale;
     this.spine.scale.set(scale);
 
-    const cx = width  / 2 - (bounds.x + bounds.width  / 2) * scale;
-    const cy = height / 2 - (bounds.y + bounds.height / 2) * scale;
+    const cx = width  / 2 - (bounds.x + bw / 2) * scale;
+    const cy = height / 2 - (bounds.y + bh / 2) * scale;
     this.spineContainer.position.set(cx, cy);
     this.positionFrac = { x: cx / width, y: cy / height };
   }
