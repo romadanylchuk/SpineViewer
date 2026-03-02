@@ -8,6 +8,7 @@ export interface ControlPanelCallbacks {
   onScale: (scale: number) => void;
   onBgColor: (color: string) => void;
   onReset: () => void;
+  onDebugBounds: () => void;
   onLoadNew: () => void;
 }
 
@@ -112,6 +113,7 @@ export class ControlPanel {
           </div>
           <div class="btn-row" style="margin-top:4px">
             <button class="btn" id="reset-btn" style="flex:1">↺ Reset view</button>
+            <button class="btn" id="debug-bounds-btn" title="Toggle bounding box">⬜ Bounds</button>
           </div>
         </div>
 
@@ -171,6 +173,12 @@ export class ControlPanel {
 
     document.getElementById('reset-btn')!.addEventListener('click', () => this.cb.onReset());
     document.getElementById('load-new-btn')!.addEventListener('click', () => this.cb.onLoadNew());
+
+    const debugBtn = document.getElementById('debug-bounds-btn') as HTMLButtonElement;
+    debugBtn.addEventListener('click', () => {
+      this.cb.onDebugBounds();
+      debugBtn.classList.toggle('active');
+    });
   }
 
   setAnimations(names: string[], _current: string): void {

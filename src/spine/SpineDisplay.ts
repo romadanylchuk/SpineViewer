@@ -1,4 +1,4 @@
-import { Application, Assets, Container, type Texture } from 'pixi.js';
+import { Application, Assets, Container, Graphics, type Texture } from 'pixi.js';
 import {
   AtlasAttachmentLoader,
   SkeletonJson,
@@ -43,6 +43,9 @@ export class SpineDisplay {
   private currentDuration = 0;
   private activeTracks    = new Map<number, string>();
 
+  private debugBoundsGraphics: Graphics | null = null;
+  private _debugBounds = false;
+
   constructor(cb: SpineDisplayCallbacks) {
     this.cb = cb;
     this.container = document.getElementById('canvas-container')!;
@@ -76,6 +79,7 @@ export class SpineDisplay {
       } else {
         this.cb.onTick(0, this.currentDuration, performance.now());
       }
+      this.updateDebugBounds();
     });
   }
 
@@ -212,6 +216,29 @@ export class SpineDisplay {
 
   resetView(): void {
     this.fitToScreen();
+  }
+
+  toggleDebugBounds(): boolean {
+    this._debugBounds = !this._debugBounds;
+    if (!this._debugBounds && this.debugBoundsGraphics) {
+      this.debugBoundsGraphics.clear();
+    }
+    return this._debugBounds;
+  }
+
+  private updateDebugBounds(): void {
+    if (!this._debugBounds || !this.spine) {
+      this.debugBoundsGraphics?.clear();
+      return;
+    }
+    if (!this.debugBoundsGraphics) {
+      this.debugBoundsGraphics = new Graphics();
+      this.app.stage.addChild(this.debugBoundsGraphics);
+    }
+    const b = this.spine.getBounds();
+    this.debugBoundsGraphics.clear();
+    this.debugBoundsGraphics.rect(b.x, b.y, b.width, b.height);
+    this.debugBoundsGraphics.stroke({ color: 0xff4444, width: 1 });
   }
 
   private fitToScreen(): void {

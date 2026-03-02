@@ -80,6 +80,9 @@ export class App {
         this.display.resetView();
         this.controlPanel.setScale(this.display.getScale());
       },
+      onDebugBounds: () => {
+        this.display.toggleDebugBounds();
+      },
       onLoadNew: () => {
         this.dropZone.show();
         this.dropZone.openPicker();
