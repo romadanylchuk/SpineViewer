@@ -3,12 +3,14 @@ import { ControlPanel } from './ui/ControlPanel';
 import { StatusBar } from './ui/StatusBar';
 import { SpineDisplay } from './spine/SpineDisplay';
 import { loadFromFiles, revokeAssets, type LoadedSpineAssets } from './spine/SpineLoader';
+import { SkeletonInspector } from './ui/SkeletonInspector';
 
 export class App {
   private dropZone!: DropZone;
   private controlPanel!: ControlPanel;
   private statusBar!: StatusBar;
   private display!: SpineDisplay;
+  private inspector!: SkeletonInspector;
 
   private currentAssets: LoadedSpineAssets | null = null;
   private currentLoop = true;
@@ -19,6 +21,7 @@ export class App {
   async init(): Promise<void> {
     this.createLoadingOverlay();
     this.createErrorToast();
+    this.inspector = new SkeletonInspector();
 
     this.statusBar = new StatusBar();
 
@@ -28,6 +31,7 @@ export class App {
         this.controlPanel.setSkins(skins, defaultSkin);
         this.controlPanel.updateActiveTracks(this.display.getActiveTracks());
         this.statusBar.setAnimation(defaultAnim);
+        this.inspector.setData(this.display.getSkeletonData());
         this.hideLoading();
         console.log('[SpineViewer] Animations:', anims);
         console.log('[SpineViewer] Skins:', skins);
@@ -87,6 +91,9 @@ export class App {
         this.dropZone.show();
         this.dropZone.openPicker();
       },
+      onInspect: () => {
+        this.inspector.toggle();
+      },
     });
 
     this.dropZone = new DropZone(files => this.handleFiles(files));
@@ -94,6 +101,7 @@ export class App {
 
   private async handleFiles(files: File[]): Promise<void> {
     this.showLoading();
+    this.inspector.setData(null);
 
     // Revoke previous assets
     if (this.currentAssets) {

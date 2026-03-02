@@ -180,6 +180,10 @@ export class SpineDisplay {
     return new Map(this.activeTracks);
   }
 
+  getSkeletonData(): SkeletonData | null {
+    return this.spine?.skeleton.data ?? null;
+  }
+
   setSkin(name: string): void {
     if (!this.spine) return;
     const skeleton = this.spine.skeleton;

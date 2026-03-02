@@ -835,3 +835,203 @@ a.version-pill:hover {
 #error-toast.show {
   opacity: 1;
 }
+
+/* ── Skeleton Inspector ─────────────────────────────────────────────── */
+.sk-inspector {
+  position: fixed;
+  left: calc(var(--sidebar-w) + (100vw - var(--sidebar-w)) / 2);
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 520px;
+  max-width: calc(100vw - var(--sidebar-w) - 20px);
+  height: 500px;
+  max-height: 85vh;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.sk-inspector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.sk-close-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0 2px;
+  border-radius: 3px;
+  transition: color 0.1s;
+}
+
+.sk-close-btn:hover {
+  color: var(--danger);
+}
+
+.sk-tabs {
+  display: flex;
+  padding: 6px 8px 0;
+  background: var(--bg-deep);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.sk-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-family: var(--font);
+  color: var(--text-dim);
+  cursor: pointer;
+  border-radius: 4px 4px 0 0;
+  transition: color 0.15s, background 0.15s;
+  margin-bottom: -1px;
+}
+
+.sk-tab:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+
+.sk-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: var(--bg-panel);
+}
+
+.sk-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 10px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.sk-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sk-body::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.sk-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.sk-table th,
+.sk-table td {
+  padding: 3px 6px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.sk-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  background: var(--bg-deep);
+  position: sticky;
+  top: 0;
+}
+
+.sk-table td.num {
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  text-align: right;
+}
+
+.sk-table tbody tr:hover td {
+  background: var(--bg-hover);
+}
+
+.sk-info-table th {
+  width: 40%;
+  text-transform: none;
+  font-size: 11px;
+  letter-spacing: 0;
+}
+
+.sk-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin: 12px 0 6px;
+  padding-left: 2px;
+}
+
+.sk-section-title:first-child {
+  margin-top: 0;
+}
+
+.sk-skin-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.sk-skin-row:hover {
+  background: var(--bg-hover);
+}
+
+.sk-skin-index {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.sk-skin-name {
+  color: var(--text);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sk-skin-count {
+  color: var(--text-dim);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.sk-empty {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 8px 2px;
+}

@@ -12,6 +12,7 @@ export interface ControlPanelCallbacks {
   onReset: () => void;
   onDebugBounds: () => void;
   onLoadNew: () => void;
+  onInspect: () => void;
 }
 
 export class ControlPanel {
@@ -123,6 +124,7 @@ export class ControlPanel {
         <div class="panel-section">
           <div class="section-title">File</div>
           <button class="btn" id="load-new-btn" style="width:100%" title="Load a .json, .skel, .atlas or .spine zip">📂 Load new file</button>
+          <button class="btn" id="inspector-btn" style="width:100%;margin-top:6px" title="View skeleton structure — bones, slots, events, constraints">🔍 Skeleton Inspector</button>
         </div>
 
       </div>
@@ -175,6 +177,7 @@ export class ControlPanel {
 
     document.getElementById('reset-btn')!.addEventListener('click', () => this.cb.onReset());
     document.getElementById('load-new-btn')!.addEventListener('click', () => this.cb.onLoadNew());
+    document.getElementById('inspector-btn')!.addEventListener('click', () => this.cb.onInspect());
 
     const debugBtn = document.getElementById('debug-bounds-btn') as HTMLButtonElement;
     debugBtn.addEventListener('click', () => {
