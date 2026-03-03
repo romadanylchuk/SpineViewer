@@ -43,7 +43,7 @@ async function loadFromLooseFiles(files: File[]): Promise<LoadedSpineAssets> {
   const skelFile   = files.find(f => ext(f.name) === '.skel');
   const jsonFile   = files.find(f => ext(f.name) === '.json');
   const atlasFile  = files.find(f => ext(f.name) === '.atlas');
-  const imageFiles = files.filter(f => ['.png', '.jpg', '.jpeg', '.webp'].includes(ext(f.name)));
+  const imageFiles = files.filter(f => ['.png', '.jpg', '.jpeg', '.webp', '.avif'].includes(ext(f.name)));
 
   const skelOrJson = skelFile ?? jsonFile;
   if (!skelOrJson) throw new Error('No skeleton file found (.json or .skel)');
@@ -77,7 +77,7 @@ async function loadFromSpineArchive(file: File): Promise<LoadedSpineAssets> {
     if      (e === '.skel')  skelEntry  = entry;
     else if (e === '.json')  jsonEntry  = entry;
     else if (e === '.atlas') atlasEntry = entry;
-    else if (['.png', '.jpg', '.jpeg', '.webp'].includes(e)) imageEntries.push(entry);
+    else if (['.png', '.jpg', '.jpeg', '.webp', '.avif'].includes(e)) imageEntries.push(entry);
   });
 
   const skelOrJson = skelEntry ?? jsonEntry;
@@ -96,7 +96,7 @@ async function loadFromSpineArchive(file: File): Promise<LoadedSpineAssets> {
   const textureUrls = new Map<string, string>();
   for (const img of imageEntries) {
     const e = ext(img.name);
-    const mime = e === '.png' ? 'image/png' : 'image/jpeg';
+    const mime = e === '.png' ? 'image/png' : e === '.avif' ? 'image/avif' : e === '.webp' ? 'image/webp' : 'image/jpeg';
     const url = URL.createObjectURL(await toBlob(img, mime));
     textureUrls.set(basename(img.name), url);
   }

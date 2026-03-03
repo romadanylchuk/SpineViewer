@@ -11,7 +11,7 @@ export class DropZone {
     this.fileInput = document.createElement('input');
     this.fileInput.type = 'file';
     this.fileInput.multiple = true;
-    this.fileInput.accept = '.json,.skel,.atlas,.png,.jpg,.jpeg,.webp,.spine';
+    this.fileInput.accept = '.json,.skel,.atlas,.png,.jpg,.jpeg,.webp,.avif,.spine';
     this.fileInput.style.display = 'none';
     document.body.appendChild(this.fileInput);
 
@@ -39,7 +39,7 @@ export class DropZone {
           <span class="format-tag">.json</span>
           <span class="format-tag">.skel</span>
           <span class="format-tag">.atlas</span>
-          <span class="format-tag">.png / .jpg</span>
+          <span class="format-tag">.png / .jpg / .avif</span>
           <span class="format-tag">.spine</span>
         </div>
         <div class="drop-or">— or —</div>
