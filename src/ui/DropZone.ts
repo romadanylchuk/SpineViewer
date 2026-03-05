@@ -77,6 +77,7 @@ export class DropZone {
 
     this.overlay.addEventListener('drop', (e) => {
       e.preventDefault();
+      e.stopPropagation(); // prevent bubbling to document drop handler
       this.overlay.classList.remove('drag-over');
       const files = Array.from(e.dataTransfer?.files ?? []);
       if (files.length > 0) this.onFiles(files);

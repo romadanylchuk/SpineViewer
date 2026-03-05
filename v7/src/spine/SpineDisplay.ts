@@ -1,4 +1,4 @@
-import { Application, Assets, Container, type Texture } from 'pixi.js';
+import { Application, BaseTexture, Container } from 'pixi.js';
 import {
   AtlasAttachmentLoader,
   SkeletonJson,
@@ -9,6 +9,26 @@ import {
   type SkeletonData,
 } from '@esotericsoftware/spine-pixi-v7';
 import type { LoadedSpineAssets } from '../../../src/spine/SpineLoader';
+
+/** Reads the Spine version string from a raw binary skeleton buffer without fully parsing it.
+ *  Binary layout: 8-byte hash → ULEB128 string (version). Returns null if unreadable. */
+function readSkeletonBinaryVersion(bytes: Uint8Array): string | null {
+  try {
+    let pos = 8; // skip 4-byte lowHash + 4-byte highHash
+    // readInt(true): ULEB128 byte count for the version string
+    let byteCount = 0, shift = 0, b: number;
+    do {
+      if (pos >= bytes.length) return null;
+      b = bytes[pos++];
+      byteCount |= (b & 0x7F) << shift;
+      shift += 7;
+    } while (b & 0x80);
+    if (byteCount <= 1) return null; // 0 = null, 1 = empty string
+    return new TextDecoder().decode(bytes.subarray(pos, pos + byteCount - 1));
+  } catch {
+    return null;
+  }
+}
 
 export interface SpineDisplayCallbacks {
   onAnimationsReady: (
@@ -37,7 +57,7 @@ export class SpineDisplay {
   private _scale   = 1.0;
   private _speed   = 1.0;
   private _playing = true;
-  private _loadedTextureUrls: string[] = [];
+  private _loadedTextureSources: BaseTexture[] = [];
 
   private currentAnim     = '';
   private currentDuration = 0;
@@ -87,18 +107,19 @@ export class SpineDisplay {
       this.spine = null;
     }
 
-    // Evict previously cached textures from the PixiJS Assets cache
-    if (this._loadedTextureUrls.length) {
-      await Promise.all(this._loadedTextureUrls.map(u => Assets.unload(u)));
-      this._loadedTextureUrls = [];
+    // Destroy previously loaded texture sources
+    if (this._loadedTextureSources.length) {
+      this._loadedTextureSources.forEach(s => s.destroy());
+      this._loadedTextureSources = [];
     }
 
     // 1. Parse the atlas text
     const atlasText = await fetch(assets.atlasUrl).then(r => r.text());
     const atlas = new TextureAtlas(atlasText);
 
-    // 2. Load all texture pages via PixiJS Assets in parallel.
-    //    blob: URLs have no file extension so we bypass test() by naming the parser explicitly.
+    // 2. Load all texture pages in parallel using createImageBitmap.
+    //    This bypasses the PixiJS WorkerManager and handles all formats (including AVIF)
+    //    directly through the browser's native decoder.
     await Promise.all(atlas.pages.map(async page => {
       const url =
         assets.textureUrls.get(page.name) ??
@@ -108,13 +129,12 @@ export class SpineDisplay {
         console.warn(`Texture page not found: ${page.name}`);
         return;
       }
-      // v7: Assets.load returns a pixi v7 Texture; SpineTexture.from accepts BaseTexture
-      const tex = await Assets.load<Texture>({
-        src: url,
-        loadParser: 'loadTextures',
-      });
-      page.setTexture(SpineTexture.from(tex.baseTexture));
-      this._loadedTextureUrls.push(url);
+      // v7: SpineTexture.from accepts BaseTexture
+      const blob = await fetch(url).then(r => r.blob());
+      const bitmap = await createImageBitmap(blob);
+      const baseTex = new BaseTexture(bitmap);
+      page.setTexture(SpineTexture.from(baseTex));
+      this._loadedTextureSources.push(baseTex);
     }));
 
     // 3. Parse skeleton
@@ -124,10 +144,22 @@ export class SpineDisplay {
     if (assets.isBinary) {
       const binary = new SkeletonBinary(attachmentLoader);
       const buffer = await fetch(assets.skeletonUrl).then(r => r.arrayBuffer());
-      skeletonData = binary.readSkeletonData(new Uint8Array(buffer as ArrayBuffer));
+      const bytes = new Uint8Array(buffer);
+      await new Promise(resolve => setTimeout(resolve, 0)); // yield before synchronous parse
+      try {
+        skeletonData = binary.readSkeletonData(bytes);
+      } catch (e) {
+        const skelVer = readSkeletonBinaryVersion(bytes);
+        const versionInfo = skelVer ? ` (skeleton exported from Spine ${skelVer})` : '';
+        const hint = skelVer && !skelVer.startsWith('4.1')
+          ? ' Make sure the skeleton was exported with Spine 4.1.'
+          : '';
+        throw new Error(`Failed to parse binary skeleton${versionInfo}.${hint} ${e instanceof Error ? e.message : String(e)}`);
+      }
     } else {
       const json = new SkeletonJson(attachmentLoader);
       const data = await fetch(assets.skeletonUrl).then(r => r.json());
+      await new Promise(resolve => setTimeout(resolve, 0)); // yield before synchronous parse
       skeletonData = json.readSkeletonData(data);
     }
 

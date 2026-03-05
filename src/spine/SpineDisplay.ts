@@ -1,4 +1,4 @@
-import { Application, Assets, Container, Graphics, type Texture } from 'pixi.js';
+import { Application, Container, Graphics, ImageSource } from 'pixi.js';
 import {
   AtlasAttachmentLoader,
   SkeletonJson,
@@ -9,6 +9,26 @@ import {
   type SkeletonData,
 } from '@esotericsoftware/spine-pixi-v8';
 import type { LoadedSpineAssets } from './SpineLoader';
+
+/** Reads the Spine version string from a raw binary skeleton buffer without fully parsing it.
+ *  Binary layout: 8-byte hash → ULEB128 string (version). Returns null if unreadable. */
+function readSkeletonBinaryVersion(bytes: Uint8Array): string | null {
+  try {
+    let pos = 8; // skip 4-byte lowHash + 4-byte highHash
+    // readInt(true): ULEB128 byte count for the version string
+    let byteCount = 0, shift = 0, b: number;
+    do {
+      if (pos >= bytes.length) return null;
+      b = bytes[pos++];
+      byteCount |= (b & 0x7F) << shift;
+      shift += 7;
+    } while (b & 0x80);
+    if (byteCount <= 1) return null; // 0 = null, 1 = empty string
+    return new TextDecoder().decode(bytes.subarray(pos, pos + byteCount - 1));
+  } catch {
+    return null;
+  }
+}
 
 export interface SpineDisplayCallbacks {
   onAnimationsReady: (
@@ -37,7 +57,7 @@ export class SpineDisplay {
   private _scale   = 1.0;
   private _speed   = 1.0;
   private _playing = true;
-  private _loadedTextureUrls: string[] = [];
+  private _loadedTextureSources: ImageSource[] = [];
 
   private currentAnim     = '';
   private currentDuration = 0;
@@ -91,19 +111,19 @@ export class SpineDisplay {
       this.spine = null;
     }
 
-    // Evict previously cached textures from the PixiJS Assets cache
-    if (this._loadedTextureUrls.length) {
-      await Promise.all(this._loadedTextureUrls.map(u => Assets.unload(u)));
-      this._loadedTextureUrls = [];
+    // Destroy previously loaded texture sources
+    if (this._loadedTextureSources.length) {
+      this._loadedTextureSources.forEach(s => s.destroy());
+      this._loadedTextureSources = [];
     }
 
     // 1. Parse the atlas text
     const atlasText = await fetch(assets.atlasUrl).then(r => r.text());
     const atlas = new TextureAtlas(atlasText);
 
-    // 2. Load all texture pages via PixiJS Assets in parallel.
-    //    blob: URLs have no file extension so we bypass test() by naming the parser explicitly.
-    //    Passing alphaMode from page.pma lets PixiJS handle premultiplied-alpha correctly.
+    // 2. Load all texture pages in parallel using createImageBitmap.
+    //    This bypasses the PixiJS WorkerManager and handles all formats (including AVIF)
+    //    directly through the browser's native decoder, then wraps in an ImageSource.
     await Promise.all(atlas.pages.map(async page => {
       const url =
         assets.textureUrls.get(page.name) ??
@@ -113,13 +133,14 @@ export class SpineDisplay {
         console.warn(`Texture page not found: ${page.name}`);
         return;
       }
-      const tex = await Assets.load<Texture>({
-        src: url,
-        loadParser: 'loadTextures',
-        data: { alphaMode: page.pma ? 'premultiplied-alpha' : 'premultiply-alpha-on-upload' },
+      const blob = await fetch(url).then(r => r.blob());
+      const bitmap = await createImageBitmap(blob);
+      const source = new ImageSource({
+        resource: bitmap,
+        alphaMode: page.pma ? 'premultiplied-alpha' : 'premultiply-alpha-on-upload',
       });
-      page.setTexture(SpineTexture.from(tex.source));
-      this._loadedTextureUrls.push(url);
+      page.setTexture(SpineTexture.from(source));
+      this._loadedTextureSources.push(source);
     }));
 
     // 3. Parse skeleton
@@ -129,10 +150,22 @@ export class SpineDisplay {
     if (assets.isBinary) {
       const binary = new SkeletonBinary(attachmentLoader);
       const buffer = await fetch(assets.skeletonUrl).then(r => r.arrayBuffer());
-      skeletonData = binary.readSkeletonData(new Uint8Array(buffer as ArrayBuffer));
+      const bytes = new Uint8Array(buffer);
+      await new Promise(resolve => setTimeout(resolve, 0)); // yield before synchronous parse
+      try {
+        skeletonData = binary.readSkeletonData(bytes);
+      } catch (e) {
+        const skelVer = readSkeletonBinaryVersion(bytes);
+        const versionInfo = skelVer ? ` (skeleton exported from Spine ${skelVer})` : '';
+        const hint = skelVer && !skelVer.startsWith('4.2')
+          ? ' Make sure the skeleton was exported with Spine 4.2.'
+          : '';
+        throw new Error(`Failed to parse binary skeleton${versionInfo}.${hint} ${e instanceof Error ? e.message : String(e)}`);
+      }
     } else {
       const json = new SkeletonJson(attachmentLoader);
       const data = await fetch(assets.skeletonUrl).then(r => r.json());
+      await new Promise(resolve => setTimeout(resolve, 0)); // yield before synchronous parse
       skeletonData = json.readSkeletonData(data);
     }
 
@@ -145,13 +178,28 @@ export class SpineDisplay {
     const animations = skeletonData.animations.map(a => a.name);
     const skins      = skeletonData.skins.map(s => s.name);
     const defaultAnim = animations[0] ?? '';
-    const defaultSkin = skins[0] ?? '';
+
+    // Auto-detect first skin with visible content. Some skeletons have an empty
+    // 'default' skin — all actual attachments live in named skins. Without this,
+    // the skeleton renders as invisible and fitToScreen gets zero bounds forever.
+    let defaultSkin = skins[0] ?? '';
+    for (const skin of skeletonData.skins) {
+      let hasContent = false;
+      for (const _ of skin.getAttachments()) { hasContent = true; break; }
+      if (hasContent) {
+        if (skin.name !== defaultSkin) {
+          this.spine.skeleton.setSkinByName(skin.name);
+          defaultSkin = skin.name;
+        }
+        break;
+      }
+    }
 
     if (defaultAnim) this.playAnimation(defaultAnim, true, 0);
 
     // Defer fitToScreen until after the first ticker frame so getBounds()
     // reflects the actual computed pose rather than an uninitialized skeleton.
-    this.app.ticker.addOnce(() => this.fitToScreen());
+    this.app.ticker.addOnce(() => this.fitToScreen(0));
 
     this.cb.onAnimationsReady(animations, skins, defaultAnim, defaultSkin);
   }
@@ -219,7 +267,7 @@ export class SpineDisplay {
   }
 
   resetView(): void {
-    this.fitToScreen();
+    this.fitToScreen(0);
   }
 
   toggleDebugBounds(): boolean {
@@ -245,7 +293,7 @@ export class SpineDisplay {
     this.debugBoundsGraphics.stroke({ color: 0xff4444, width: 1 });
   }
 
-  private fitToScreen(): void {
+  private fitToScreen(retryCount = 0): void {
     if (!this.spine) return;
     // Use getLocalBounds() so the result is independent of spineContainer's
     // current world position — otherwise 2nd+ loads mis-center the skeleton.
@@ -258,7 +306,11 @@ export class SpineDisplay {
     // Guard: Spine may not have computed valid bounds yet (before first update).
     // getBounds returning Infinity/-Infinity would produce NaN → PixiJS snaps to (0,0).
     if (!isFinite(bw) || !isFinite(bh) || bw <= 0 || bh <= 0) {
-      this.app.ticker.addOnce(() => this.fitToScreen());
+      if (retryCount >= 120) {
+        console.warn('[SpineDisplay] fitToScreen: bounds still invalid after 120 frames, giving up');
+        return;
+      }
+      this.app.ticker.addOnce(() => this.fitToScreen(retryCount + 1));
       return;
     }
 
@@ -306,7 +358,7 @@ export class SpineDisplay {
     }, { passive: false });
 
     canvas.addEventListener('dblclick', () => {
-      this.fitToScreen();
+      this.fitToScreen(0);
       this.cb.onScaleChange?.(this._scale);
     });
 
